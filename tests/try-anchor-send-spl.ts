@@ -80,9 +80,9 @@ describe("try-anchor-send-spl", () => {
       .signers([airdroped_token, signer])
       .rpc()
 
-    console.log('tx', tx)
-    console.log('signer token balance', await provider.connection.getTokenAccountBalance(signer_token_account));
-    console.log('airdroped account balance', await provider.connection.getTokenAccountBalance(airdroped_token.publicKey));
+    // console.log('tx', tx)
+    // console.log('signer token balance', await provider.connection.getTokenAccountBalance(signer_token_account));
+    // console.log('airdroped account balance', await provider.connection.getTokenAccountBalance(airdroped_token.publicKey));
   })
 
   it('claim airdrop', async() => {
@@ -93,6 +93,10 @@ describe("try-anchor-send-spl", () => {
       airdropedToken: airdroped_token.publicKey,
       tokenProgram: splToken.TOKEN_PROGRAM_ID,
     }
+    console.log('-- BEFORE --')
+    console.log('airdroped account balance', await provider.connection.getTokenAccountBalance(airdroped_token.publicKey));
+    console.log('airdrop claimer token balance', await provider.connection.getTokenAccountBalance(airdrop_claimer_token_account));
+    console.log('\n')
 
     const tx = await program.methods
       .claim()
@@ -100,7 +104,9 @@ describe("try-anchor-send-spl", () => {
       .signers([airdrop_hunter])
       .rpc()
 
+    console.log('-- AFTER --')
     console.log('airdroped account balance', await provider.connection.getTokenAccountBalance(airdroped_token.publicKey));
     console.log('airdrop claimer token balance', await provider.connection.getTokenAccountBalance(airdrop_claimer_token_account));
+    console.log('\n')
   })
 })
