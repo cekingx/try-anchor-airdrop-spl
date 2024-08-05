@@ -15,6 +15,7 @@ describe("try-anchor-send-spl", () => {
 
   let mint;
   let signer_token_account;
+  let airdrop_claimer_token_account;
   let airdrop_account: anchor.web3.PublicKey;
 
   before(async() => {
@@ -52,6 +53,12 @@ describe("try-anchor-send-spl", () => {
       payer,
       1000000000
     )
+    airdrop_claimer_token_account = await splToken.createAssociatedTokenAccount(
+      provider.connection,
+      payer,
+      mint,
+      airdrop_hunter.publicKey
+    )
 
     console.log('airdrop account:', airdrop_account.toBase58());
   })
@@ -76,5 +83,24 @@ describe("try-anchor-send-spl", () => {
     console.log('tx', tx)
     console.log('signer token balance', await provider.connection.getTokenAccountBalance(signer_token_account));
     console.log('airdroped account balance', await provider.connection.getTokenAccountBalance(airdroped_token.publicKey));
+  })
+
+  it('claim airdrop', async() => {
+    const account = {
+      claimer: airdrop_hunter.publicKey,
+      airdropAccount: airdrop_account,
+      claimerTokenAccount: airdrop_claimer_token_account,
+      airdropedToken: airdroped_token.publicKey,
+      tokenProgram: splToken.TOKEN_PROGRAM_ID,
+    }
+
+    const tx = await program.methods
+      .claim()
+      .accounts(account)
+      .signers([airdrop_hunter])
+      .rpc()
+
+    console.log('airdroped account balance', await provider.connection.getTokenAccountBalance(airdroped_token.publicKey));
+    console.log('airdrop claimer token balance', await provider.connection.getTokenAccountBalance(airdrop_claimer_token_account));
   })
 })

@@ -26,6 +26,22 @@ pub mod try_anchor_send_spl {
         )?;
         Ok(())
     }
+
+    pub fn claim(ctx: Context<Claim>) -> Result<()> {
+        anchor_spl::token::transfer(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_program.to_account_info(),
+                anchor_spl::token::Transfer {
+                    from: ctx.accounts.airdroped_token.to_account_info(),
+                    to: ctx.accounts.claimer_token_account.to_account_info(),
+                    authority: ctx.accounts.airdrop_account.to_account_info(),
+                },
+                &[&[&[ctx.accounts.airdrop_account.bump]]],
+            ),
+            100000
+        )?;
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -55,6 +71,31 @@ pub struct Initialize<'info> {
     airdroped_token: Account<'info, TokenAccount>,
     token_program: Program<'info, Token>,
     system_program: Program<'info, System>
+}
+
+#[derive(Accounts)]
+pub struct Claim<'info> {
+    pub claimer: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [],
+        bump = airdrop_account.bump,
+    )]
+    pub airdrop_account: Account<'info, Airdrop>,
+
+    #[account(
+        mut,
+        constraint = airdroped_token.key() == airdrop_account.airdroped_token
+    )]
+    pub airdroped_token: Account<'info, TokenAccount>,
+
+    #[account(
+        mut,
+        constraint = claimer_token_account.owner == claimer.key()
+    )]
+    pub claimer_token_account: Account<'info, TokenAccount>,
+
+    pub token_program: Program<'info, Token>,
 }
 
 #[account]
